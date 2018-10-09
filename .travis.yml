@@ -1,0 +1,25 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mattmrs/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run mattmrs/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t mattmrs/multi-client ./client
+  - docker build -t mattmrs/multi-nginx ./nginx
+  - docker build -t mattmrs/multi-server ./server
+  - docker build -t mattmrs/multi-worker ./worker
+  # log in to the docker cli!
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take the images and push them to docker hub
+  - docker push mattmrs/multi-client
+  - docker push mattmrs/multi-nginx
+  - docker push mattmrs/multi-server
+  - docker push mattmrs/multi-worker
+
+
+
